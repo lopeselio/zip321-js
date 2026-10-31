@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { formatZec, MAX_MONEY, parseZec, toZatoshi } from '../src/amount.ts';
+import { decodeAsset, encodeAsset } from '../src/asset.ts';
 import { base64urlDecode, base64urlEncode } from '../src/encoding/base64url.ts';
 import { memoText, textMemo } from '../src/memo.ts';
 import { ZIP321Error } from '../src/errors.ts';
@@ -62,4 +63,26 @@ test('textMemo and memoText follow ZIP 302', () => {
   assert.equal(memoText(new Uint8Array([0xc3, 0x28])), undefined); // invalid UTF-8
   assert.equal(textMemo('é'.repeat(256)).length, 512);
   assert.throws(() => textMemo('é'.repeat(256) + 'x'), code('INVALID_MEMO'));
+});
+
+test('decodes the ZIP-321 req-asset example', () => {
+  const asset = decodeAsset('AEcnAAAAAAAAAADerb7v3q2-796tvu_erb7v3q2-796tvu_erb7v3q2-7xEiM0RVZneImQCqu8zd7v8AESIzRFVmd4iZqrvM3e7_');
+  assert.equal(asset.value, 10_055n);
+  assert.equal(
+    hex(asset.assetId),
+    '0000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef11223344556677889900aabbccddeeff00112233445566778899aabbccddeeff',
+  );
+  assert.equal(encodeAsset(asset), 'AEcnAAAAAAAAAADerb7v3q2-796tvu_erb7v3q2-796tvu_erb7v3q2-7xEiM0RVZneImQCqu8zd7v8AESIzRFVmd4iZqrvM3e7_');
+});
+
+test('rejects malformed req-asset values', () => {
+  // Erratum: the ZIP's second req-asset example (meant to be 250000 units) is 74 bytes, not 75.
+  assert.throws(
+    () => decodeAsset('AJAIAwAAAAAAADerb7v3q2-796tvu_erb7v3q2-796tvu_erb7v3q2-7xEiM0RVZneImQCqu8zd7v8AESIzRFVmd4iZqrvM3e7_'),
+    code('INVALID_ASSET'),
+  );
+  assert.throws(() => decodeAsset('not@valid!chars'), code('INVALID_ASSET'));
+  assert.throws(() => decodeAsset(base64urlEncode(new Uint8Array([1, ...new Uint8Array(74)]))), code('INVALID_ASSET'));
+  assert.throws(() => encodeAsset({ value: 1n << 64n, assetId: new Uint8Array(66) }), code('INVALID_ASSET'));
+  assert.throws(() => encodeAsset({ value: 1n, assetId: new Uint8Array(65) }), code('INVALID_ASSET'));
 });
