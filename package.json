@@ -1,0 +1,50 @@
+{
+  "name": "zip321",
+  "version": "0.1.0",
+  "description": "Strict ZIP-321 Zcash payment request URIs: parse, build and validate, with full address checks. Zero dependencies.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "lopeselio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopeselio/zip321-js.git"
+  },
+  "homepage": "https://github.com/lopeselio/zip321-js#readme",
+  "bugs": {
+    "url": "https://github.com/lopeselio/zip321-js/issues"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/fix-dts.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "test:integration": "THS_INTEGRATION=1 node --test --test-timeout=900000 test/integration.test.ts",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "zcash",
+    "zip-321",
+    "zip321",
+    "payment-request",
+    "uri",
+    "unified-address"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.0"
+  }
+}
